@@ -33,24 +33,53 @@ jobs:
 
       - name: Package Termux .deb
         run: |
+          VER="0.1.${{ github.run_number }}"
           PKG_DIR="pkg-build"
-          mkdir -p "${PKG_DIR}/DEBIAN" "${PKG_DIR}/data/data/com.termux/files/usr/bin"
-          cp target/aarch64-linux-android/fast/horizon-prepare "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
-          cp target/aarch64-linux-android/fast/horizon-official "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
-          chmod 755 "${PKG_DIR}/data/data/com.termux/files/usr/bin/"*
-          cat << 'DEBEOF' > "${PKG_DIR}/DEBIAN/control"
+          PREFIX_DIR="${PKG_DIR}/data/data/com.termux/files/usr"
+          mkdir -p "${PKG_DIR}/DEBIAN" "${PREFIX_DIR}/bin" "${PREFIX_DIR}/lib/horizon"
+
+          cp target/aarch64-linux-android/fast/horizon-prepare "${PREFIX_DIR}/bin/horizon-prepare"
+          cp target/aarch64-linux-android/fast/horizon-official "${PREFIX_DIR}/bin/horizon-official-bin"
+          chmod 755 "${PREFIX_DIR}/bin/horizon-prepare" "${PREFIX_DIR}/bin/horizon-official-bin"
+
+          # Isolated soname symlinks so dlopen finds .so.0/.so.1/.so.8 without shadowing /system/lib64/liblzma.so
+          ln -sf ../libwayland-client.so "${PREFIX_DIR}/lib/horizon/libwayland-client.so.0"
+          ln -sf ../libwayland-cursor.so "${PREFIX_DIR}/lib/horizon/libwayland-cursor.so.0"
+          ln -sf ../libwayland-egl.so "${PREFIX_DIR}/lib/horizon/libwayland-egl.so.0"
+          ln -sf ../libffi.so "${PREFIX_DIR}/lib/horizon/libffi.so.8"
+          ln -sf ../libxkbcommon.so "${PREFIX_DIR}/lib/horizon/libxkbcommon.so.0"
+          ln -sf ../libvulkan.so "${PREFIX_DIR}/lib/horizon/libvulkan.so.1"
+          ln -sf ../libvulkan.so "${PREFIX_DIR}/lib/horizon/libvulkan.so"
+
+          cat << 'WRAPEOF' > "${PREFIX_DIR}/bin/horizon-official"
+          #!/data/data/com.termux/files/usr/bin/sh
+          PREFIX="/data/data/com.termux/files/usr"
+          export LD_LIBRARY_PATH="${PREFIX}/lib/horizon${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}"
+          if [ -z "${VK_ICD_FILENAMES:-}" ]; then
+            if [ -f "${PREFIX}/share/vulkan/icd.d/freedreno_icd.aarch64.json" ]; then
+              export VK_ICD_FILENAMES="${PREFIX}/share/vulkan/icd.d/freedreno_icd.aarch64.json"
+            elif [ -f "${PREFIX}/share/vulkan/icd.d/panfrost_icd.aarch64.json" ]; then
+              export VK_ICD_FILENAMES="${PREFIX}/share/vulkan/icd.d/panfrost_icd.aarch64.json"
+            fi
+          fi
+          exec "${PREFIX}/bin/horizon-official-bin" "$@"
+          WRAPEOF
+          chmod 755 "${PREFIX_DIR}/bin/horizon-official"
+
+          cat << DEBEOF > "${PKG_DIR}/DEBIAN/control"
           Package: horizon-termux
-          Version: 0.1.${{ github.run_number }}
+          Version: ${VER}
           Architecture: aarch64
           Maintainer: miarulez1
-          Depends: vulkan-loader-generic, mesa-vulkan-icd-freedreno
-          Recommends: openjdk-25
+          Depends: libwayland, libxkbcommon, libffi, vulkan-loader-generic
+          Recommends: mesa-vulkan-icd-freedreno, openjdk-25
           Description: Horizon native Rust Minecraft engine & asset preparer for Termux
           DEBEOF
-          dpkg-deb --build "${PKG_DIR}" horizon-termux_0.1.${{ github.run_number }}_aarch64.deb
+
+          dpkg-deb --build "${PKG_DIR}" "horizon-termux_${VER}_aarch64.deb"
 
       - name: Upload Termux .deb
         uses: actions/upload-artifact@v4
         with:
           name: horizon-termux-aarch64
-          path: horizon-termux_0.1.${{ github.run_number }}_aarch64.deb
+          path: horizon-termux_0.1.*_aarch64.deb
