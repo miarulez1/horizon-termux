@@ -16,6 +16,9 @@ jobs:
         with:
           targets: aarch64-linux-android
 
+      - name: Cache Cargo build
+        uses: Swatinem/rust-cache@v2
+
       - name: Setup Android NDK
         uses: nttld/setup-ndk@v1
         with:
@@ -26,12 +29,31 @@ jobs:
 
       - name: Build horizon-prepare & horizon-official
         run: |
-          cargo ndk -t arm64-v8a --platform 24 build --profile fast -p horizon-prepare -p horizon-official
+          cargo ndk -t arm64-v8a --platform 26 build --profile fast -p horizon-prepare -p horizon-official
 
-      - name: Upload Termux binaries
+      - name: Package Termux .deb
+        run: |
+          PKG_DIR="pkg-build"
+          mkdir -p "${PKG_DIR}/DEBIAN" "${PKG_DIR}/data/data/com.termux/files/usr/bin"
+          cp target/aarch64-linux-android/fast/horizon-prepare "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
+          cp target/aarch64-linux-android/fast/horizon-official "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
+          chmod 755 "${PKG_DIR}/data/data/com.termux/files/usr/bin/"*
+          cat << 'DEBEOF' > "${PKG_DIR}/DEBIAN/control"
+          Package: horizon-termux
+          Version: 0.1.0
+          Architecture: aarch64
+          Maintainer: miarulez1
+          Depends: vulkan-loader-generic, mesa-vulkan-icd-freedreno
+          Recommends: openjdk-25
+          Description: Horizon native Rust Minecraft engine & asset preparer for Termux
+          DEBEOF
+          dpkg-deb --build "${PKG_DIR}" horizon-termux_0.1.0_aarch64.deb
+
+      - name: Upload Termux .deb & binaries
         uses: actions/upload-artifact@v4
         with:
           name: horizon-termux-aarch64
           path: |
+            horizon-termux_0.1.0_aarch64.deb
             target/aarch64-linux-android/fast/horizon-prepare
             target/aarch64-linux-android/fast/horizon-official
