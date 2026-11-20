@@ -240,7 +240,6 @@ impl super::Instance {
         // Platform-specific WSI extensions
         if cfg!(all(
             unix,
-            not(target_os = "android"),
             not(target_os = "macos")
         )) {
             // VK_KHR_xlib_surface
