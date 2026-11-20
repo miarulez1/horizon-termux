@@ -1,7 +1,7 @@
 # Horizon for Termux (`aarch64-linux-android`)
 
 Native Rust Minecraft: Java Edition 26.3 client (`horizon-official`) and resource preparer (`horizon-prepare`) patched for Termux (`bionic`) with Wayland/X11 windowing and Mesa Turnip / PanVK Vulkan support.
-## DISCLAIMER: this fork is an atrocious piece of vibe coding us at your own risk
+## DISCLAIMER: this fork is an atrocious piece of vibe coding, use at your own risk
 ## Install on Termux
 
 1. Download the `horizon-termux-aarch64` artifact from **Actions** and extract the `.deb`:
