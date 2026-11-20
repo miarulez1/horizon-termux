@@ -35,8 +35,6 @@ jobs:
         run: |
           PKG_DIR="pkg-build"
           mkdir -p "${PKG_DIR}/DEBIAN" "${PKG_DIR}/data/data/com.termux/files/usr/bin"
-          cp target/aarch64-linux-android/fast/horizon-prepare "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
-          cp target/aarch64-linux-android/fast/horizon-official "${PKG_DIR}/data/data/com.termux/files/usr/bin/"
           chmod 755 "${PKG_DIR}/data/data/com.termux/files/usr/bin/"*
           cat << 'DEBEOF' > "${PKG_DIR}/DEBIAN/control"
           Package: horizon-termux
@@ -55,5 +53,3 @@ jobs:
           name: horizon-termux-aarch64
           path: |
             horizon-termux_0.1.0_aarch64.deb
-            target/aarch64-linux-android/fast/horizon-prepare
-            target/aarch64-linux-android/fast/horizon-official
