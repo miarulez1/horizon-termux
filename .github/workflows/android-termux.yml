@@ -40,17 +40,17 @@ jobs:
           chmod 755 "${PKG_DIR}/data/data/com.termux/files/usr/bin/"*
           cat << 'DEBEOF' > "${PKG_DIR}/DEBIAN/control"
           Package: horizon-termux
-          Version: 0.1.0
+          Version: 0.1.${{ github.run_number }}
           Architecture: aarch64
           Maintainer: miarulez1
           Depends: vulkan-loader-generic, mesa-vulkan-icd-freedreno
           Recommends: openjdk-25
           Description: Horizon native Rust Minecraft engine & asset preparer for Termux
           DEBEOF
-          dpkg-deb --build "${PKG_DIR}" horizon-termux_0.1.0_aarch64.deb
+          dpkg-deb --build "${PKG_DIR}" horizon-termux_0.1.${{ github.run_number }}_aarch64.deb
 
       - name: Upload Termux .deb
         uses: actions/upload-artifact@v4
         with:
           name: horizon-termux-aarch64
-          path: horizon-termux_0.1.0_aarch64.deb
+          path: horizon-termux_0.1.${{ github.run_number }}_aarch64.deb
