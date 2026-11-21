@@ -62,9 +62,9 @@ jobs:
               export VK_ICD_FILENAMES="${PREFIX}/share/vulkan/icd.d/panfrost_icd.aarch64.json"
             fi
           fi
-  export WINIT_UNIX_BACKEND=x11
-  export WGPU_BACKEND=vulkan
-  export vblank_mode=0
+          export WINIT_UNIX_BACKEND=x11
+          export WGPU_BACKEND=vulkan
+          export vblank_mode=0
           exec "${PREFIX}/bin/horizon-official-bin" "$@"
           WRAPEOF
           chmod 755 "${PREFIX_DIR}/bin/horizon-official"
