@@ -7,6 +7,7 @@ rust-version.workspace = true
 description = "The game as the platform runs it: the engine's entry with the platform's parts registered, for an executable to start (docs/layers.md)"
 
 [dependencies]
+ndk-context = "0.1.1"
 horizon-guest-stack = { path = "../horizon-guest-stack" }
 horizon-client = { path = "../horizon-client", default-features = false }
 horizon-mod-package = { path = "../horizon-mod-package", default-features = false, features = ["index"] }

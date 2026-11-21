@@ -7,6 +7,8 @@ static GAME_IDENTITY: [u8; horizon_mod_package::game_identity::MARK.len()] =
     horizon_mod_package::game_identity::MARK;
 
 fn main() {
+    #[cfg(target_os = "android")]
+    unsafe { ndk_context::initialize_android_context(std::ptr::null_mut(), std::ptr::null_mut()); }
     horizon_guest_stack::prepare_main();
     std::hint::black_box(&GAME_IDENTITY);
     horizon_game::main();
